@@ -7,3 +7,9 @@ local.properties
 keystore.properties
 *.jks
 *.keystore
+# telepath: your own settings, photos and TV snapshots stay on your computer
+telepath.local.properties
+/wallpapers/*
+!/wallpapers/README.md
+/backups/
+*.apk

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Window changes from Google TV's launcher only. No key filtering (canRequestFilterKeyEvents): with it, Android routes
+     every remote button through accessibility, and on TVs that handles each volume press once and drops the repeats
+     of a held button, so holding Volume up/down moved one step. -->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityEventTypes="typeWindowStateChanged"
     android:packageNames="com.google.android.apps.tv.launcherx"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:notificationTimeout="0"
     android:canRetrieveWindowContent="false"
-    android:canRequestFilterKeyEvents="true"
-    android:accessibilityFlags="flagRequestFilterKeyEvents"
     android:description="@string/override_desc" />

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- View tag key: which home row a focusable belongs to ("cw", "dock", "tiles", "cards"). -->
+    <item name="homeRow" type="id" />
+    <!-- The Weather/Watchlist row: the widgets page scrolls so its bottom sits just above the screen edge. -->
+    <item name="widgetCards" type="id" />
+</resources>

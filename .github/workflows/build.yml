@@ -1,0 +1,72 @@
+# Builds telepath with the settings in telepath.properties: unit tests, then the release APK, which you can
+# download from the run's Artifacts. Pushing a tag such as v1.0 also attaches the APK to a GitHub release.
+#
+# Signing: add these repository secrets (Settings > Secrets and variables > Actions) to sign with your own key, so
+# each new APK installs over the last one. Without them every run signs with a throwaway key. See docs/CUSTOMIZING.md.
+#   SIGNING_KEYSTORE_BASE64  your keystore file, base64-encoded
+#   SIGNING_STORE_PASSWORD, SIGNING_KEY_ALIAS, SIGNING_KEY_PASSWORD
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Use your signing key
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          if [ -z "$SIGNING_KEYSTORE_BASE64" ]; then
+            echo "::warning::No signing secrets, so this APK is signed with a throwaway key and can't update an earlier install. See docs/CUSTOMIZING.md#sign-your-builds."
+            exit 0
+          fi
+          echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          {
+            echo "storeFile=$RUNNER_TEMP/release.jks"
+            echo "storePassword=$SIGNING_STORE_PASSWORD"
+            echo "keyAlias=$SIGNING_KEY_ALIAS"
+            echo "keyPassword=$SIGNING_KEY_PASSWORD"
+          } > keystore.properties
+
+      - name: Test and build
+        run: ./gradlew --no-daemon :app:testDebugUnitTest :app:assembleRelease
+
+      - name: Name the APK
+        id: apk
+        run: |
+          version="$(jq -r '.elements[0].versionName' app/build/outputs/apk/release/output-metadata.json)"
+          cp app/build/outputs/apk/release/app-release.apk "telepath-$version.apk"
+          echo "file=telepath-$version.apk" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.file }}
+          path: ${{ steps.apk.outputs.file }}
+
+      - name: Attach the APK to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.apk.outputs.file }}
+          generate_release_notes: true

@@ -4,8 +4,6 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- In-app updates from GitHub releases. -->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- Lets us read every app's Watch Next entries (same permission Projectivy uses). -->
     <uses-permission android:name="android.permission.READ_TV_LISTINGS" />
     <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA" />
@@ -29,10 +27,11 @@
     </queries>
 
     <application
-        android:label="Plume"
+        android:label="@string/app_name"
+        android:allowBackup="false"
         android:banner="@drawable/banner"
         android:icon="@drawable/banner"
-        android:usesCleartextTraffic="true"
+        android:usesCleartextTraffic="false"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
 
         <activity
@@ -61,17 +60,24 @@
             </intent-filter>
         </receiver>
 
-        <!-- Gallery screensaver; switched on and off from launcher settings. -->
+        <!-- telepath's screensaver (Wallpapers slideshow, paintings or a photo folder); chosen in Home settings. -->
         <service
             android:name=".GalleryDream"
             android:exported="true"
-            android:label="@string/gallery"
+            android:label="@string/app_name"
             android:permission="android.permission.BIND_DREAM_SERVICE">
             <intent-filter>
                 <action android:name="android.service.dreams.DreamService" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </service>
+
+        <!-- Test screensaver: the screensaver in a window, since this TV can't start one on demand. -->
+        <activity
+            android:name=".ScreensaverPreview"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar.Fullscreen" />
 
         <!-- Google TV's launcher must stay enabled; this service replaces it on screen whenever it shows. -->
         <service

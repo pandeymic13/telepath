@@ -1,205 +1,262 @@
-<h1 align="center">Plume Launcher</h1>
+<h1 align="center">telepath</h1>
 
 <p align="center">
-  <em>Light as a feather.</em> A minimal, ad-free home screen for Android TV and Google TV.
+  A calm, ad-free home screen for Google TV and Android TV, built on
+  <a href="https://github.com/aradhyas8/Plume_Launcher">Plume Launcher</a>.<br>
+  Your photos fill the top of the screen. Make your own version with one settings file.
 </p>
 
 <p align="center">
-  <a href="https://github.com/aradhyas8/Plume_Launcher/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/aradhyas8/Plume_Launcher?label=release"></a>
   <img alt="Android 8.0+" src="https://img.shields.io/badge/Android-8.0%2B-3ddc84">
-  <img alt="APK size" src="https://img.shields.io/badge/APK-0.4%20MB-blue">
-  <a href="https://github.com/aradhyas8/Plume_Launcher/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/aradhyas8/Plume_Launcher/total"></a>
-  <a href="LICENSE"><img alt="GPL-3.0 License" src="https://img.shields.io/github/license/aradhyas8/Plume_Launcher"></a>
+  <img alt="APK size" src="https://img.shields.io/badge/APK-0.5%20MB-blue">
+  <a href="LICENSE"><img alt="GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-blue"></a>
+  <a href="https://github.com/aradhyas8/Plume_Launcher"><img alt="Built on Plume" src="https://img.shields.io/badge/built%20on-Plume%20Launcher-8a63d2"></a>
 </p>
 
-<p align="center">
-  <img src="docs/home-light.jpg" alt="Plume home screen, light theme" width="49%">
-  <img src="docs/home-dark.jpg" alt="Plume home screen, dark theme" width="49%">
-</p>
+<!-- Screenshots: add yours to docs/screenshots/ (see docs/screenshots/README.md) and show them here, for example
+<p align="center"><img src="docs/screenshots/home-day.jpg" width="49%"> <img src="docs/screenshots/home-night.jpg" width="49%"></p> -->
 
-Plume replaces the cluttered stock home screen with the two things you actually use: your apps and what you were watching. There are no ads, no sponsored rows, no account and no tracking, and it stays out of the way of the apps it launches.
+telepath replaces the busy stock home screen with what you actually use: your favourite apps, what you're
+watching, and a photo you like, with no ads, sponsored rows, accounts or tracking. It's a personal launcher that you
+can fork, tweak and install on your own TV.
 
 ## Highlights
 
-- **Tiny and fast.** A 0.4 MB APK with no third-party libraries. It uses about 50–70 MB of RAM and has no extra background services.
-- **Home button support on Google TV.** The Home button opens Plume directly, even on devices where the system launcher can't be replaced. Holding Home still opens the Google TV dashboard.
-- **Continue Watching.** Resume shows and films from Android TV's Watch Next list and from apps that publish their own "Continue Watching" channel, such as Stremio.
-- **Clean apps row.** Monochrome logos (or the same logos in brand colour) in a single row, with names on focus, always or never. Rearrange it by holding OK, sort by most used, or hide apps you don't use (they stay in All apps). An optional PIN locks the layout so small hands can't rearrange it.
-- **HDMI inputs as apps.** A console or set-top box that names itself over HDMI-CEC (for example "PlayStation 5") gets its own tile, which switches the TV to that input. Other HDMI devices get a tile while they send a picture, and every HDMI input is in All apps, where you can pin it to the row.
-- **Light, dark or automatic theme**, each with its own wallpaper. Add your own photos from your phone by scanning a QR code, or show a folder of photos from the TV or a USB drive that changes on a timer.
-- **Optional Gallery screensaver.** Public-domain landscape paintings in 16:9, downloaded only if you choose it, or a folder of your own photos.
-- **Optional weather** under the clock.
-- **Updates itself.** Plume checks GitHub once a day and installs new versions from its settings (from 1.2 on). The first update asks you to allow installs from Plume.
+- **Your photos, up top.** The top half of Home is left to the wallpaper: a slideshow of your own photos, with a new
+  one each time you come back to Home. The screensaver shows them too.
+- **A theme that follows the sun.** Light from sunrise to sunset and dark after, worked out for where the TV is.
+  Mood colours tint the photo at dawn, golden hour, sunset, dusk and night, and with clouds, fog or rain.
+- **Always readable.** The clock, date and Up next turn white or dark to suit each photo. Busy photos get a small
+  glass panel instead of a veil over the whole picture.
+- **Continue Watching that only shows what you're watching:** what you started and the next episode, as full
+  landscape pictures with titles. No suggestions.
+- **App tiles in the Apple TV style,** with day and night versions made from each app's own logo. New apps get a
+  tile and a group (Streaming, or Apps & utilities) automatically.
+- **Widgets one press down:** your inputs with your console first, shortcuts (Home settings, TV settings, the
+  Google TV home screen, All apps), the weather and a stock watchlist.
+- **Up next:** the next match or race you follow, beside the clock: football and cricket teams, the Champions League
+  and World Cup knockouts, and Formula 1.
+- **Light:** about 0.5 MB, no third-party libraries, no background services. The Home button works even where Google
+  TV's own launcher can't be replaced, and holding Home still opens the Google TV dashboard.
 
-## How it compares
+## Make it yours
 
-Measured on a Hisense Google TV (Android 12, 1.8 GB RAM):
+Everything personal is in one file, [`telepath.properties`](telepath.properties): your favourite apps, the
+weather location, your console's HDMI port, watchlist symbols, the teams Up next follows, and every theme colour.
 
-| | Plume | Projectivy Launcher | Google TV launcher |
-|---|---|---|---|
-| APK size | **0.4 MB** | ~10–14 MB | ~25 MB |
-| RAM while running | **~50–70 MB** | ~65–70 MB | ~93 MB, plus a ~22 MB helper process |
-| Extra background services | **None** | 2 | 1 always-on helper |
-| Return to home from an app | **~95 ms** | – | – |
+1. **Fork this repository** on GitHub.
+2. **Edit `telepath.properties`** (on GitHub, select the file, then the pencil). The comments explain each setting,
+   and [docs/CUSTOMIZING.md](docs/CUSTOMIZING.md) has the full reference.
+3. **Get your APK.** Every push runs the [Build workflow](.github/workflows/build.yml): open your fork's **Actions**
+   tab, select the latest run, and download the APK under **Artifacts**. (In a fork, turn Actions on once from the
+   Actions tab.) Or [build it on your computer](#build-from-source).
+4. **[Install it](#install)** on your TV.
+
+Settings you'd rather not publish (your TV's address, a city) can go in `telepath.local.properties` next to it
+instead. That file is git-ignored, and its values win.
 
 ## Requirements
 
-- Android TV or Google TV running **Android 8.0 (Oreo) or newer**
-- A way to sideload an APK: the *Downloader* app, a USB drive with a file manager, or `adb`
+- Android TV or Google TV with **Android 8.0 or newer**. Developed on a Sony BRAVIA with Google TV (Android 14).
+- A way to sideload an APK: the *Downloader* app, a USB drive, or `adb` from a computer on the same network.
 
-## Installation
+## Install
 
-1. Download the latest `Plume-<version>.apk` from the [Releases](https://github.com/aradhyas8/Plume_Launcher/releases/latest) page.
-2. Install it on your TV, using any of these:
-   - **Downloader app:** enter the code **`2125356`**. It always points to the latest release.
+1. **Get the APK:** from your fork's Actions artifacts, from this project's Releases page if it publishes one, or
+   from your own build.
+2. **Install it on the TV**, using any of these:
+   - **Downloader app:** enter the APK's web address.
    - **USB drive:** copy the APK over and open it with a file manager.
-   - **adb:** `adb install Plume-<version>.apk`
-3. Open **Plume** from your apps. Its settings panel opens automatically on first launch.
-
-### First-run setup
-
-Plume's settings panel includes two setup rows:
-
-| Setting | What to do |
-|---|---|
-| **Home button** | Press OK. In the Accessibility screen that opens, select **Plume: Home button** and turn it on. |
-| **Default launcher** | Press OK and choose **Plume** in the dialog. |
-
-Allow the **TV listings** permission when asked; Continue Watching needs it.
+   - **adb:** `adb install -r telepath-1.0.apk`, or on Windows `.\scripts\Install-Telepath.ps1`.
+3. **Open telepath** from your apps and follow its setup: it makes itself the default home screen and turns on
+   its Home button service. Allow the **TV listings** permission when asked; Continue Watching needs it.
 
 > [!NOTE]
-> Android shows the same generic warning for every accessibility service. Plume's service only listens for the Home key and for the system launcher appearing. It cannot read screen content.
-
-> [!TIP]
-> **Android 13 and newer:** Android blocks sideloaded apps from Accessibility at first. Open **Settings → Apps → Plume**, choose **Allow restricted settings** from the menu, then turn the service on.
-
-### Optional: grant one extra permission over adb
-
-```sh
-adb shell pm grant dev.plume android.permission.WRITE_SECURE_SETTINGS
-```
-
-This lets Plume:
-- set the Gallery screensaver from its own settings
-- turn its Home button service back on automatically if the app is ever force-stopped
-
-Everything else works without it.
+> Android shows the same generic warning for every accessibility service. telepath's service only watches for
+> the Google TV home screen appearing. It doesn't see or filter remote buttons (filtering them would make a held
+> Volume button move only one step), and it can't read what's on the screen.
 
 ### Home button on Android 13 and newer
 
-Android 13 and newer grey out the Accessibility switch for apps installed outside the Play Store, and most Google TV builds hide the **Allow restricted settings** menu that would unlock it. If Plume's setup reaches the ADB step, unlock it once from a computer (or a phone ADB app) on the same network:
+Android 13 and newer grey out the Accessibility switch for apps installed outside the Play Store, and most Google TV
+builds hide the **Allow restricted settings** menu that would unlock it. If the setup reaches its adb step, unlock it
+once from a computer (or a phone adb app) on the same network:
 
-1. On the TV, open **Settings → System → About** and press **Android TV OS build** seven times to turn on Developer options.
-2. In **Settings → System → Developer options**, turn on **Network debugging** (called **USB debugging** on some TVs).
-3. Run these, using the address Plume shows:
+1. On the TV, open **Settings → System → About** and press **Android TV OS build** seven times to turn on Developer
+   options.
+2. In **Settings → System → Developer options**, turn on **Network debugging** (called **USB debugging** or
+   **Wireless debugging** on some TVs).
+3. Run these, with the address telepath shows (`dev.aster.home` is the default `app.id`):
 
    ```sh
    adb connect <tv-address>:5555
-   adb shell pm grant dev.plume android.permission.WRITE_SECURE_SETTINGS
+   adb shell pm grant dev.aster.home android.permission.WRITE_SECURE_SETTINGS
    ```
 
-4. Accept the debugging prompt on the TV, then choose **Try again** in Plume. Plume turns its Home button service on by itself.
+4. Accept the debugging prompt on the TV, then choose **Try again**. telepath turns its Home button service on
+   by itself.
 
-## Using Plume
+The same permission lets telepath switch the screensaver to your photos.
 
-| Action | How |
-|---|---|
-| Rearrange apps | Hold **OK** on an app, or use **Settings → Edit apps row** |
-| Hide a Continue Watching item | Hold **OK** on its card, then **Remove from Continue Watching** |
-| Remove an app from the row | Hold **OK** on it, then **Remove from row** (it stays in *All apps*) |
-| Choose which apps feed Continue Watching | **Settings → Continue Watching apps** |
-| Pin an app from *All apps* to the front | Open **All apps**, hold **OK** on the app (this also unhides it) |
-| Hide apps from the row | **Settings → Apps in row** |
-| Show app names always, on focus or never | **Settings → App names** |
-| Switch between monochrome and colour icons | **Settings → Icon style** |
-| Update Plume | **Settings → Updates** |
-| Lock the layout with a PIN | **Settings → Lock layout** |
-| Open the Google TV dashboard | Hold the **Home** button |
+### Or set it all up from a computer (Windows)
 
-### Custom wallpapers
+The [scripts](scripts) do the same over adb, with a preview first, and save the TV's original settings so you can undo
+everything:
 
-Open **Light mode wallpaper** or **Dark mode wallpaper** in Plume settings and choose **Add from phone…**. Scan the QR code with your phone (it must be on the same Wi-Fi as the TV), pick a photo and upload it. It becomes the wallpaper straight away. The TV turns it upright, crops it to the screen around its centre and saves a small copy. The upload page only works while that screen is open. **Remove a photo…** in the same list deletes one.
-
-You can also copy `.jpg`, `.png` or `.webp` files to `Android/data/dev.plume/files/wallpapers/` yourself:
-
-```sh
-adb push my-wallpaper.jpg /sdcard/Android/data/dev.plume/files/wallpapers/
+```powershell
+.\scripts\Install-Telepath.ps1 -Tv 192.168.1.20             # install or update
+.\scripts\Activate-Telepath.ps1 -Tv 192.168.1.20 -Apply     # default Home, Home button, screensaver
+.\scripts\Restore-Telepath.ps1 -Tv 192.168.1.20 -Apply      # put the TV's own home screen back
 ```
 
-A gentle fade is added automatically so the rows stay readable (**Settings → Photo fade** turns it off).
+Put `tv.address=192.168.1.20` in `telepath.local.properties` to leave out `-Tv`. Nothing is disabled or
+uninstalled: Google TV's own launcher stays installed, and the voice button on the remote keeps working.
 
-### Photo folders
+## Your photos
 
-Choose **Choose a folder on this TV…** in the wallpaper list to use a whole folder of photos, from the TV's storage or a USB drive. Plume asks for access to your photos the first time. The photos take turns in shuffled order; **Settings → Folder photo changes** sets how often, from every minute to once a day. The screensaver can show a folder too: **Settings → Screensaver → Your photos**.
+The wallpaper is a slideshow of the photos in telepath's own folder on the TV, and a different one shows each
+time you return to Home. Until you add some, it shows the two built-in landscapes.
 
-### Lock layout
+- **Windows:** put photos in the [`wallpapers`](wallpapers) folder (or point `wallpapers.folder` at your own), then
+  run `.\scripts\Sync-Wallpapers.ps1 -Apply`. It turns each photo upright, fills the screen with it and removes
+  location and camera data before copying. Portrait photos are zoomed to fill the screen; add `-Portrait Stretch` to
+  stretch them out instead. Run it again whenever you add or remove photos: it mirrors the folder.
+- **macOS and Linux:** `scripts/sync-wallpapers.sh --apply` does the same, copying the photos as they are (telepath
+  fills the screen with them). It uses `exiftool` to remove their location and camera data first; without it,
+  add `--keep-metadata` to copy them anyway.
+- **Any computer with adb:** copy photos straight in (they keep their metadata):
+  `adb push my-photo.jpg /sdcard/Android/data/dev.aster.home/files/slideshow/`
+- **From your phone:** Home settings → Appearance → day or night wallpaper → **Add from phone…**, then scan the QR
+  code. That photo becomes the wallpaper on its own, instead of the slideshow.
 
-**Settings → Lock layout** sets a 4-digit PIN. While it's on, Plume settings and anything that changes the home screen (moving, removing or pinning apps, hiding shows) ask for the PIN first; opening apps works as usual. One PIN unlocks changes for five minutes, until you leave the home screen. Use the arrows or the remote's number keys to enter it.
+The same list also has the two built-in landscapes, a plain colour and the Bing picture of the day. The screensaver
+can show a folder of photos on the TV or a USB drive instead (**Home settings → Screensaver**).
 
-The lock keeps the layout safe, it isn't parental control: apps can still be opened by voice search or from Android settings. Forgot the PIN? **Android Settings → Apps → Plume → Clear data** removes it, along with your layout and settings.
+## Themes
 
-### Gallery screensaver
+On the TV, **Home settings → Appearance** has **Theme** (Auto, Light or Dark) and **Mood colours** (time of day and
+weather, time of day only, or off). Every colour (text, glass, focus, and the mood tint for each part of the day) is
+in the theme section of `telepath.properties`. See [Theme colours](docs/CUSTOMIZING.md#theme-colours).
 
-Select **Settings → Screensaver** to switch to Gallery. Plume downloads the paintings (4.7 MB) from this repository's releases and stores them privately. Switching back to another screensaver deletes them again, so they only take space while you use them.
+## Using it
+
+| To | Do this |
+|---|---|
+| Come back to telepath | Press **Home**, from anywhere |
+| See the widgets | Press **Down** from the favourites |
+| Home settings | Down, then **Shortcuts → Home settings** |
+| TV settings | Down, then **Shortcuts → TV settings** |
+| Google TV's own home screen | Down, then **Shortcuts → Google TV** (Home brings you back) |
+| All apps | Down, then **Shortcuts → All apps** |
+| Switch to your console | Down, then **Inputs** |
+| Google TV dashboard | Hold **Home** |
+| Move, remove or add a favourite | Hold **OK** on the app (in the dock or in All apps) |
+| Move an app to the other group, or use its plain icon | Hold **OK** on it in All apps |
+| Hide a Continue Watching card | Hold **OK** on it |
+| Change the weather location or watchlist | Hold **OK** on that card |
 
 ## Privacy
 
-Plume has no analytics, no ads and no account. It only connects to the internet to:
-- load poster images for your Continue Watching items
-- check this repository's GitHub releases for a new version, once a day, and download it when you choose to update
-- download the Gallery paintings from this repository, **only if you choose that screensaver**
-- get the Bing picture of the day (about 300 KB), **only if you choose it as your wallpaper**. Plume sends a request to [bing.com](https://www.bing.com) when the home screen opens: once a day, or once an hour until the picture has changed that day, because Bing changes it at a set time for each country. Bing sees the TV's IP address and its language and country, which Plume sends to get the picture for your country. Plume keeps one picture and deletes it when you choose another wallpaper.
-- fetch the weather, **only if you turn it on**. It looks up your approximate location from your IP address via [ipwho.is](https://ipwho.is), then gets the forecast from [Open-Meteo](https://open-meteo.com).
+No ads, analytics or accounts, and no background service. Widgets refresh only while Home is on screen. telepath
+goes online only to:
 
-**Add from phone…** runs a small upload page on the TV itself, reachable only on your home network and only while that screen is open. Photos go straight from your phone to the TV and nowhere else.
+- **Weather:** unless you set a city, it looks up the TV's approximate place from its internet address
+  ([ipwho.is](https://ipwho.is)) at most every 6 hours. The place's coordinates go to
+  [Open-Meteo](https://open-meteo.com) at most every 30 minutes.
+- **Watchlist,** only with symbols set: the symbols go to Yahoo Finance at most every 5 minutes.
+- **Up next:** F1 times from [Jolpica](https://github.com/jolpica/jolpica-f1); football and cricket from
+  [TheSportsDB](https://www.thesportsdb.com)'s free public key, at most every 6 hours. Only team and league numbers
+  are sent.
+- **Continue Watching pictures,** as each app publishes them. For apps that only publish portrait posters, the wide
+  version comes from the same public image hosts (Metahub, TheTVDB).
+- **Bing picture of the day** and the **Gallery paintings** screensaver, only if you choose them.
+
+Your photos stay on your computer and in telepath's own folder on the TV, which other apps can't read on Android
+11 and newer; the sync scripts remove their location and camera data first. The **Add from phone** page works only on
+your home network, and only while that screen is open. telepath doesn't update itself; you install each new
+version.
 
 ## Troubleshooting
 
 <details>
-<summary><b>The Home button still opens the old home screen</b></summary>
+<summary><b>The Home button opens Google TV's home screen</b></summary>
 
-Check that **Settings → Home button** shows **On**. If the app was force-stopped, Android turns its accessibility service off; open Plume once (or grant the optional adb permission above) to restore it.
+Check **Home settings → Home button**. If the app was force-stopped, Android turns its accessibility service off;
+open telepath once to turn it back on. Right after an update, the first Home press can still land on Google
+TV's home for a few seconds.
 </details>
 
 <details>
-<summary><b>Continue Watching is empty</b></summary>
+<summary><b>Continue Watching misses YouTube or Netflix</b></summary>
 
-Make sure the TV listings permission is allowed (**Settings → Apps → Plume → Permissions**), and that the app you watch publishes to Android TV's Watch Next list. Check **Settings → Continue Watching apps** in Plume too.
+Neither shares what you're watching with other launchers: YouTube gives its resume points only to Google TV's own
+home screen, through your Google account, and Netflix shares none. telepath shows only real resume points, so
+it leaves them out rather than showing suggestions. **Home settings → Continue Watching → Resume source status**
+shows what each app shares.
 </details>
 
 <details>
-<summary><b>The screensaver option says it needs an adb permission</b></summary>
+<summary><b>The screensaver is still Google TV's</b></summary>
 
-Google TV hides third-party screensavers from its own settings, so Plume needs the one-time `WRITE_SECURE_SETTINGS` grant shown above to switch it for you.
+Google TV hides other screensavers from its settings. Grant the permission shown under
+[Home button on Android 13 and newer](#home-button-on-android-13-and-newer), or run `Activate-Telepath.ps1`, then
+choose it in **Home settings → Screensaver**.
 </details>
 
-## Building from source
+<details>
+<summary><b>An update won't install over the version on the TV</b></summary>
+
+Each build is signed with a key, and Android only installs an update signed with the same key. Sign your builds with
+your own key ([how](docs/CUSTOMIZING.md#sign-your-builds)), or uninstall the old version first (its settings are
+lost). Giving your build its own `app.id` lets two versions sit side by side.
+
+Android also won't install a lower `versionCode` over a higher one. adb's `-d` option gets round that only for
+debuggable apps, which release builds aren't. To go back to an older version, build it with a `versionCode` at least
+as high as the one on the TV (an equal one installs over it), or uninstall first.
+</details>
+
+## Build from source
+
+You need JDK 17 or newer (21 recommended) and the Android SDK (Android Studio installs it).
 
 ```sh
-git clone https://github.com/aradhyas8/Plume_Launcher.git
-cd Plume_Launcher
-./gradlew assembleRelease
+git clone <your fork's address>
+cd telepath
+./gradlew :app:testDebugUnitTest :app:assembleRelease     # Windows: .\scripts\Build-Telepath.ps1
 ```
 
-The APK is written to `app/build/outputs/apk/release/`. Without a `keystore.properties` file, release builds are signed with your local debug key, which is fine for installing your own build.
+The APK is in `app/build/outputs/apk/release/`. Without a `keystore.properties` file it is signed with your
+computer's debug key, which is fine for installing your own build. To keep up with Plume:
+`git remote add upstream https://github.com/aradhyas8/Plume_Launcher.git`, then `git fetch upstream` and merge
+`upstream/main`.
 
 ## Contributing
 
-Bug reports, design ideas, translations and pull requests are welcome. Plume stays small on purpose, so please read [CONTRIBUTING.md](CONTRIBUTING.md) first: it lists what's in and out of scope and how to send a change. Open an issue before starting on a feature.
+Ideas, fixes and translations are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). Changes that suit every Plume user
+are best sent to [Plume Launcher](https://github.com/aradhyas8/Plume_Launcher) itself.
 
 ## Credits
 
-- **Screensaver paintings** (public domain, scans via Wikimedia Commons; files in [`screensaver/`](screensaver)):
-  - Frederic Edwin Church: *The Heart of the Andes*, *The Icebergs*, *Chimborazo*, *Cotopaxi*
-  - Ivan Shishkin: *Rye*
-  - Jasper Francis Cropsey: *Autumn on the Hudson River*
-  - Martin Johnson Heade: *Thunder Storm on Narragansett Bay*
-- **Wallpapers:** "Canada" by Thomas Curryer, via [Unsplash](https://unsplash.com/@tawc20) (CC0)
-- **App logos:** [Simple Icons](https://simpleicons.org) (CC0). All trademarks belong to their respective owners.
-- **HDMI input icons:** [Material Symbols](https://fonts.google.com/icons) by Google (Apache 2.0)
+- **[Plume Launcher](https://github.com/aradhyas8/Plume_Launcher)** by aradhyas8: the launcher telepath is built
+  on (GPL-3.0). Its history is kept in this repository.
+- **[Free My TV](https://github.com/simbasjungles/free-my-tv)** by simbasjungles inspired the widgets page. No code was
+  copied.
+- **Screensaver paintings** (public domain, scans via Wikimedia Commons, downloaded from Plume's releases): Frederic
+  Edwin Church, Ivan Shishkin, Jasper Francis Cropsey and Martin Johnson Heade. Titles are in
+  [`screensaver/`](screensaver).
+- **Built-in wallpapers:** "Canada" by Thomas Curryer, via [Unsplash](https://unsplash.com/@tawc20) (CC0), from Plume.
+- **App logos:** [Simple Icons](https://simpleicons.org) (CC0). **Disney+ Hotstar logos:** Wikimedia Commons
+  ("Disney+ Hotstar logo.svg", "Disney+ Hotstar 2024.svg"; public-domain text logos), recoloured.
+- **Input icons:** [Material Symbols](https://fonts.google.com/icons) by Google (Apache 2.0).
+- **Data:** [Open-Meteo](https://open-meteo.com), [ipwho.is](https://ipwho.is), Yahoo Finance,
+  [Jolpica](https://github.com/jolpica/jolpica-f1), [TheSportsDB](https://www.thesportsdb.com), Metahub, TheTVDB and
+  Bing.
+
+All trademarks belong to their owners, and logos are shown only to label the apps on your TV. telepath is not
+affiliated with or endorsed by Google, Sony, or any streaming service.
 
 ## License
 
-Copyright (C) 2026 aradhyas8
-
-Plume Launcher is free software, released under the [GNU General Public License v3.0](LICENSE). You may use, modify and redistribute it, but any distributed version, modified or not, must also be released under the GPL-3.0 with its full source code.
+telepath is free software under the [GNU General Public License v3.0](LICENSE), like Plume Launcher.
+Copyright (C) 2026 aradhyas8 (Plume Launcher) and the telepath contributors. You may use, change and share it,
+but any version you distribute, changed or not, must also be under the GPL-3.0, with its full source code.

@@ -1,62 +1,54 @@
-# Contributing to Plume
+# Contributing to telepath
 
-Thanks for wanting to help. Plume is a small project with one maintainer, so this page explains what fits, what doesn't, and how to send a change that can be merged quickly.
+Thanks for wanting to help. telepath is a personal launcher shared so that others can make their own version,
+so the most useful contributions make it easier to customize, or make it work on more TVs.
 
-## What Plume is
+## What telepath is
 
-Plume is a minimal home screen for Android TV and Google TV. Every change is weighed against these principles:
+A calm home screen for Google TV and Android TV, built on [Plume Launcher](https://github.com/aradhyas8/Plume_Launcher).
+Changes are weighed against the same principles as Plume's:
 
-- **Small and light.** A 0.4 MB APK, about 50–70 MB of RAM, no third-party libraries, no extra background services.
-- **Simple home screen.** One calm screen with your apps and what you watch. Nothing competes for attention.
-- **Yours, not ours.** No ads, no sponsored or recommended content, no analytics, no account.
-- **Quiet on the network.** Plume only goes online for the things listed under [Privacy](README.md#privacy). Anything new that connects to the internet must be optional and off until the user turns it on.
+- **Small and light.** About 0.5 MB, no third-party libraries, no services running while Home isn't on screen.
+- **Calm.** The top of the screen belongs to the wallpaper. Nothing competes for attention.
+- **Yours.** No ads, no recommended content, no analytics, no account.
+- **Quiet on the network.** telepath only goes online for what [Privacy](README.md#privacy) lists. Anything new
+  that connects to the internet must say so there, and should be off unless the user sets it up.
+- **Configurable, not hard-coded.** A personal choice (an app, a place, a team, a colour) belongs in
+  `telepath.properties`, with a sensible default for everyone else.
 
-## What's out of scope
+Changes that suit every Plume user, such as a fix in code telepath shares with Plume, are best sent to
+[Plume Launcher](https://github.com/aradhyas8/Plume_Launcher) itself, and come here with the next merge.
 
-These will be declined, however well they're built:
+## Out of scope
 
-- Recommendation, trending or "discover" rows, and anything else that fills the home screen with content the user didn't ask for
-- Ads, analytics, crash reporting services, or accounts
+- Recommendation, trending or "discover" rows, and anything else that fills the screen with content you didn't ask for
+- Ads, analytics, crash reporting services or accounts
 - New third-party libraries or SDKs (AndroidX included)
-- Services, workers or alarms that run while Plume isn't on screen
-- Online metadata services that need an API key, such as TMDB
-- Rows, widgets or sections that copy the scrolling layouts of other launchers
+- Services, workers or alarms that run while telepath isn't on screen
+- Online services that need an API key
 
-More of your own content on the home screen, such as Up next or more of Continue Watching, is welcome as a design first. Open a feature request that shows how it keeps the screen calm. A clear description is enough; sketches and mockups help.
-
-Not sure if an idea fits? Open a feature request first and ask. That's much cheaper than finding out after the code is written.
-
-## Before you start
-
-- **Bug fixes:** go ahead and open a pull request. Link the issue if there is one.
-- **Features:** open a [feature request](../../issues/new/choose) first and wait for a reply. Pull requests for features that weren't discussed may be closed.
-- **Translations:** see [Translations](#translations) below.
+Not sure an idea fits? Open a feature request first and ask.
 
 ## Pull requests
 
-- **One change per pull request.** A translation, a bug fix and a new menu are three pull requests. Mixed pull requests are hard to review and will be asked to split.
-- **Keep the diff small.** Match the style of the code around your change. Don't reformat or reorganise code you aren't changing.
-- **Test on a real TV** (or an Android TV emulator if you have no TV) and say which device and Android version you used.
-- **Mention size and memory changes.** If your change adds resources or keeps things in memory, give the APK size before and after.
-- **No new permissions** without discussing them in an issue first.
+- **One change per pull request**, with a small diff in the style of the code around it.
+- **Run the unit tests:** `./gradlew :app:testDebugUnitTest`, and add tests for logic you add.
+- **Test on a TV** (or an Android TV emulator) and say which device and Android version you used.
+- **Add a new setting to `telepath.properties`** with a comment, check it in `app/build.gradle.kts`, and describe it
+  in [docs/CUSTOMIZING.md](docs/CUSTOMIZING.md).
+- **Put user-visible changes under `## Unreleased`** in [CHANGELOG.md](CHANGELOG.md), in the style written there.
+- **Keep personal data out:** no TV addresses, names, accounts, photos, or what you watch, in code, tests or
+  screenshots.
 
-By sending a pull request you agree that your contribution is licensed under the project's [GPL-3.0 licence](LICENSE).
+By sending a pull request you agree that your contribution is licensed under the [GPL-3.0](LICENSE).
 
 ## Translations
 
-Translations are welcome. Shipping every language costs very little: each language adds a few KB to the APK and no memory, because Android only loads the strings for the language the TV is set to.
-
-- A translation pull request adds or edits **only** `app/src/main/res/values-<code>/strings.xml`, for example `values-it/strings.xml`. No code changes, no new features.
-- Translate every string in `app/src/main/res/values/strings.xml`. Keep placeholders such as `%1$s` and `%d` exactly as they are.
-- Keep text short. TV screens are read from across the room, and long labels get cut off.
-- If you add a language, please say whether you're happy to be asked about new strings later. Languages that fall far behind may be removed.
-
-Some of Plume's text still lives in the Kotlin code instead of `strings.xml`. Please don't move strings into `strings.xml` inside a translation pull request; open an issue instead, so the move happens once for every language.
+Each language lives in `app/src/main/res/values-<code>/strings.xml`. Translate the strings in
+`app/src/main/res/values/strings.xml`, keep placeholders such as `%1$s` as they are, and keep text short: TV screens
+are read from across the room. Plume's own strings are best translated in Plume.
 
 ## Reporting bugs
 
-Use the [bug report form](../../issues/new/choose). The TV model, Android version and Plume version matter most, because many problems only happen on one manufacturer's TVs. A photo or video of the screen helps a lot.
-
-## Building
-
-See [Building from source](README.md#building-from-source) in the README.
+Use the bug report form. The TV model and Android version matter most, because many problems only happen on one
+manufacturer's TVs. A photo of the screen helps a lot.

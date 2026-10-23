@@ -1,11 +1,11 @@
 name: Feature request
-description: Suggest an idea for Plume
+description: Suggest an idea for telepath
 labels: [enhancement]
 body:
   - type: markdown
     attributes:
       value: |
-        Plume stays small on purpose. Please read [what's in and out of scope](https://github.com/aradhyas8/Plume_Launcher/blob/main/CONTRIBUTING.md#whats-out-of-scope) before suggesting something.
+        telepath stays small and calm on purpose. Please read what's out of scope in CONTRIBUTING.md first.
   - type: textarea
     id: problem
     attributes:
@@ -17,7 +17,7 @@ body:
     id: idea
     attributes:
       label: Your idea
-      description: How you picture it working. Sketches, mockups or screenshots are welcome.
+      description: How you picture it working, and whether it should be a setting in telepath.properties. Sketches are welcome.
     validations:
       required: true
   - type: textarea
@@ -27,7 +27,7 @@ body:
   - type: checkboxes
     id: scope
     attributes:
-      label: Fit with Plume
+      label: Fit with telepath
       options:
         - label: This doesn't add recommendation rows, ads, tracking, an account, or a third-party library.
           required: true
