@@ -13,8 +13,9 @@
   <a href="https://github.com/aradhyas8/Plume_Launcher"><img alt="Built on Plume" src="https://img.shields.io/badge/built%20on-Plume%20Launcher-8a63d2"></a>
 </p>
 
-<!-- Screenshots: add yours to docs/screenshots/ (see docs/screenshots/README.md) and show them here, for example
-<p align="center"><img src="docs/screenshots/home-day.jpg" width="49%"> <img src="docs/screenshots/home-night.jpg" width="49%"></p> -->
+<p align="center">
+  <img src="docs/screenshots/telepath-tour.webp" width="100%" alt="A tour of telepath on a TV: the home screen with Continue Watching and the favourites dock, the widgets page, All apps and telepath settings">
+</p>
 
 telepath replaces the busy stock home screen with what you actually use: your favourite apps, what you're
 watching, and a photo you like, with no ads, sponsored rows, accounts or tracking. It's a personal launcher that you
