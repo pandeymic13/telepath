@@ -99,3 +99,22 @@ internal fun moveGroup(pkg: String, streaming: Boolean, automatic: Boolean, chos
         else -> s to (u + pkg)
     }
 }
+
+/**
+ * All apps in the order you left them ([saved]), for the apps still installed; apps you haven't placed yet
+ * (new installs) follow in their default order ([defaults], every installed app), so each lands at the end of its group.
+ */
+internal fun orderAllApps(defaults: List<String>, saved: List<String>): List<String> {
+    val installed = defaults.toSet()
+    val placed = saved.filter { it in installed }.distinct()
+    return placed + defaults.filter { it !in placed.toSet() }
+}
+
+/** [group] (one All apps group, in order) with [pkg] moved [step] places, stopping at the group's first and last place. */
+internal fun moveInGroup(group: List<String>, pkg: String, step: Int): List<String> {
+    val from = group.indexOf(pkg)
+    if (from < 0) return group
+    val to = (from + step).coerceIn(0, group.size - 1)
+    if (to == from) return group
+    return group.toMutableList().apply { removeAt(from); add(to, pkg) }
+}

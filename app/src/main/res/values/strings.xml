@@ -22,7 +22,7 @@
     <string name="quote_header">Day change · delayed</string>
     <string name="watchlist_symbols">Watchlist symbols</string>
     <string name="section_favourites">Favourites</string>
-    <string name="all_apps_hint">Hold OK on an app to add it to favourites, move it to the other group or change its tile.</string>
+    <string name="all_apps_hint">Hold OK on an app to move it, add it to favourites, put it in the other group or change its tile.</string>
     <string name="slideshow">Slideshow</string>
     <string name="slideshow_empty">Slideshow (no photos yet)</string>
     <string name="slideshow_hint">Photos synced from your computer\'s wallpapers folder. A different one shows each time you return Home.</string>
@@ -146,6 +146,9 @@
     <string name="remove_from_cw">Remove from Continue Watching</string>
     <string name="open_app">Open app</string>
     <string name="moving_hint">Moving:  ◀ ▶ move  ·  OK place</string>
+    <string name="moving_hint_grid">Moving:  ◀ ▶ ▲ ▼ move  ·  OK place</string>
+    <string name="forget_device">Forget %1$s on this port</string>
+    <string name="device_forgotten">%1$s forgotten. This port shows the next device that names itself here.</string>
     <string name="editing_hint">Reordering favourites:  OK pick up / drop  ·  ◀ ▶ move  ·  Back done</string>
     <string name="shown">Shown</string>
     <string name="hidden">Hidden</string>

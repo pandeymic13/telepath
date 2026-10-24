@@ -1,5 +1,6 @@
 package dev.plume
 
+import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.app.Activity
@@ -148,17 +149,19 @@ internal fun hashPin(pin: String, salt: String = ByteArray(8).also { SecureRando
 internal fun pinMatches(stored: String, pin: String) = hashPin(pin, stored.substringBefore(':')) == stored
 
 private val SET_TOP_WORDS = listOf("sky", "tivo", "xfinity", "comcast", "directv", "dish", "stb", "set-top", "settop", "cable", "satellite", "freesat", "freeview")
+private val PS_NAME = Regex("\\bps ?[2-5]\\b")
 private val AUDIO_WORDS = listOf("soundbar", "sound bar", "sonos", "avr", "receiver", "home theater", "home theatre", "bose", "denon", "marantz", "onkyo", "yamaha", "harman", "jbl")
 
 /**
  * Icon key for an HDMI tile, from its name: the CEC device name, or the name the user gave the input in TV
  * settings. Android doesn't give apps the CEC device type, so the name is all there is. One brand word covers
- * the family ("PlayStation" is PS3 to PS5). [named]: a CEC device, which is a player when nothing else matches.
+ * the family ("PlayStation" is PS3 to PS5, which may also call itself "PS5"). [named]: a CEC device, which is a
+ * player when nothing else matches.
  */
 internal fun hdmiIcon(name: String, named: Boolean): String {
     val n = name.lowercase()
     return when {
-        "playstation" in n -> "playstation"
+        "playstation" in n || PS_NAME.containsMatchIn(n) -> "playstation"
         "xbox" in n -> "xbox"
         "nintendo" in n || "switch" in n -> "nintendoswitch"
         "apple tv" in n || "appletv" in n -> "appletv"
@@ -277,6 +280,7 @@ class MainActivity : Activity() {
     private lateinit var allApps: View
     private lateinit var allAppsSections: LinearLayout
     private lateinit var wifi: ImageView
+    private var wifiRest = Color.WHITE // the header's icon colour for the current photo; focus turns it ink
     private val headerBlock by lazy { findViewById<View>(R.id.headerBlock) }
     /** The header's text: the clock and Up next title, then the date and Up next time. */
     private val headerText by lazy { listOf(R.id.clock, R.id.upNextTitle).map { findViewById<TextView>(it) } }
@@ -286,6 +290,9 @@ class MainActivity : Activity() {
     private lateinit var kit: UiKit
     private val homeScroll by lazy { findViewById<HomeScrollView>(R.id.homeScroll) }
     private var allAppsFrom: View? = null
+    private var allMoving: String? = null // the app being moved in All apps (hold OK > Move)
+    private var allMovingOrder: List<String>? = null // All apps' order while moving, saved when it's placed
+    private var allAppsFocus: Runnable? = null // All apps' pending focus after a rebuild; a newer rebuild cancels it
 
     private val packageReceiver = object : BroadcastReceiver() {
         override fun onReceive(c: Context, i: Intent) {
@@ -382,6 +389,7 @@ class MainActivity : Activity() {
             focusTile(this, kit, 16f, null, listOf(this as TextView), kit.text2, scale = 1.015f)
             setOnClickListener { showWatchCoverage() }
         }
+        setUpNetIcon()
         loadWallpaper()
         personalDashboard = PersonalDashboard(this, findViewById(R.id.widgetsSection), kit, dashboardHost)
         upNext = UpNext(this)
@@ -458,7 +466,7 @@ class MainActivity : Activity() {
         HomeOverride.stockHomeAllowed = false
         if (homeScroll.page > 0) {
             homeScroll.show(0, animate = false)
-            (lastApp?.takeIf { it.isAttachedToWindow } ?: appRow.getChildAt(0))?.requestFocus()
+            (lastApp?.takeIf { it.isAttachedToWindow } ?: firstDockApp())?.requestFocus()
         }
     }
 
@@ -498,6 +506,7 @@ class MainActivity : Activity() {
         personalDashboard.pause()
         ui.removeCallbacks(themeTick)
         if (editing) endEdit()
+        if (allMoving != null) endAllAppsMove(refresh = false)
         super.onPause()
     }
 
@@ -813,7 +822,7 @@ class MainActivity : Activity() {
         watchScroll.scrollTo(0, 0)
         findViewById<View>(R.id.appScroll).scrollTo(0, 0)
         trail = null
-        appRow.getChildAt(0)?.requestFocus()
+        firstDockApp()?.requestFocus()
         homeScroll.show(0, animate = visible)
     }
 
@@ -823,7 +832,7 @@ class MainActivity : Activity() {
         when {
             settingsScrim.visibility == View.VISIBLE -> pageBack?.invoke() ?: closeLauncherSettings()
             allApps.visibility == View.VISIBLE -> closeAllApps()
-            homeScroll.page > 0 -> (lastApp?.takeIf { it.isAttachedToWindow } ?: appRow.getChildAt(0))?.requestFocus()
+            homeScroll.page > 0 -> (lastApp?.takeIf { it.isAttachedToWindow } ?: firstDockApp())?.requestFocus()
         }
     }
 
@@ -1025,7 +1034,41 @@ class MainActivity : Activity() {
         }
         findViewById<View>(R.id.upNextRule).setBackgroundColor(s.rule)
         headerBlock.background?.alpha = s.plate
-        wifi.setColorFilter(s.icon)
+        wifiRest = s.icon
+        if (!wifi.isFocused) wifi.setColorFilter(s.icon)
+    }
+
+    /**
+     * The network icon at the top right: Up from Continue Watching reaches it, and OK opens the network settings.
+     * Focus fades a white disc in behind it while the icon turns ink, like the tiles.
+     */
+    private fun setUpNetIcon() {
+        val disc = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(kit.focusFill)
+            alpha = 0
+        }
+        wifi.background = disc
+        wifi.isFocusable = true
+        wifi.isClickable = true
+        wifi.setTag(R.id.homeRow, "top")
+        wifi.setOnClickListener { openSettings(Settings.ACTION_WIFI_SETTINGS) }
+        var running: ValueAnimator? = null
+        wifi.setOnFocusChangeListener { v, focused ->
+            running?.cancel()
+            running = ValueAnimator.ofFloat(disc.alpha / 255f, if (focused) 1f else 0f).apply {
+                duration = if (focused) 200L else 160L
+                interpolator = EASE
+                val colours = ArgbEvaluator()
+                addUpdateListener {
+                    val f = it.animatedValue as Float
+                    disc.alpha = (f * 255).toInt()
+                    wifi.setColorFilter(colours.evaluate(f, wifiRest, kit.ink) as Int)
+                }
+                start()
+            }
+            v.lift(focused, 1.12f, kit.px(8f))
+        }
     }
 
     /**
@@ -1317,7 +1360,7 @@ class MainActivity : Activity() {
         pageBack = null
         settingsScrim.visibility = View.GONE
         homeFocusable(allApps.visibility != View.VISIBLE) // the PIN can open over All apps
-        (panelFrom?.takeIf { it.isAttachedToWindow && it.isShown } ?: appRow.getChildAt(0))?.requestFocus()
+        (panelFrom?.takeIf { it.isAttachedToWindow && it.isShown } ?: firstDockApp())?.requestFocus()
         panelFrom = null
     }
 
@@ -1449,6 +1492,7 @@ class MainActivity : Activity() {
 
     private val dashboardHost = object : DashboardHost {
         override fun openAllApps(from: View) = this@MainActivity.openAllApps(from)
+        override fun menu(anchor: View, items: List<Pair<String, () -> Unit>>) = holdMenu(anchor, items)
         override fun openHomeSettings(from: View) = unlock { openLauncherSettings(0) }
         override fun openGoogleTv() = this@MainActivity.openGoogleTv()
         override fun openTvSettings() = openSettings(Settings.ACTION_SETTINGS)
@@ -2019,7 +2063,8 @@ class MainActivity : Activity() {
 
     /**
      * The favourites dock: up to eight banners across the frosted glass, the row scrolling for more. Banners are
-     * 16:9 art that fills the whole tile, so every favourite reads at the same size.
+     * 16:9 art that fills the whole tile, so every favourite reads at the same size. All apps comes first, a square as
+     * tall as the banners, one press Left of the first favourite (where Home lands), as on Android TV.
      */
     private fun renderApps() {
         val focusedTag = currentFocus?.tag
@@ -2028,14 +2073,16 @@ class MainActivity : Activity() {
         val takeFocus = currentFocus == null || currentFocus?.parent === appRow || appRow.childCount == 0
         val gap = dp(12)
         val inner = resources.displayMetrics.widthPixels - dp(80) - dp(24)
-        val width = minOf(dp(104), (inner - gap * (ROW_TILES - 1)) / ROW_TILES)
+        // Eight banners and the All apps square, with a gap after each but the last, fill the glass.
+        val width = minOf(dp(104), ((inner - gap * ROW_TILES) / (ROW_TILES + 9f / 16f)).toInt())
+        val square = width * 9 / 16
         appRow.removeAllViews()
         val hidden = rowHiddenSet()
         val tiles = sortedApps().filter { it.pkg !in hidden }.map { bannerTile(it, kit.px(10f)) }
         // Clipping cut the focused tile's shadow off square at the dock's edge. Clip only when the row scrolls (more
         // favourites than fit), and then to the dock's own rounded glass, so the shadow fades out naturally.
         val scroll = findViewById<View>(R.id.appScroll)
-        val overflow = tiles.size * width + maxOf(0, tiles.size - 1) * gap > inner
+        val overflow = square + tiles.size * (width + gap) > inner
         scroll.outlineProvider = if (!overflow) ViewOutlineProvider.BOUNDS else object : ViewOutlineProvider() {
             override fun getOutline(view: View, outline: Outline) = outline.setRoundRect(0, 0, view.width, view.height, kit.px(26f))
         }
@@ -2050,22 +2097,51 @@ class MainActivity : Activity() {
             }
         }
         if (!overflow) scroll.scrollTo(0, 0)
-        tiles.forEachIndexed { i, t ->
+        val all = allAppsTile(kit.px(10f))
+        for (t in listOf<View>(all) + tiles) {
             t.id = View.generateViewId()
             t.setTag(R.id.homeRow, "dock")
-            appRow.addView(t, LinearLayout.LayoutParams(width, width * 9 / 16).apply { if (i > 0) marginStart = gap })
+            appRow.addView(t, if (t === all) LinearLayout.LayoutParams(square, square)
+            else LinearLayout.LayoutParams(width, width * 9 / 16).apply { marginStart = gap })
             val own = t.onFocusChangeListener
             t.setOnFocusChangeListener { v, focused ->
                 own?.onFocusChange(v, focused)
                 if (focused) lastApp = v
             }
         }
-        if (takeFocus) (tiles.firstOrNull { it.tag == focusedTag } ?: tiles.firstOrNull())?.requestFocus()
+        if (takeFocus) (if (focusedTag == ALL_APPS) all else tiles.firstOrNull { it.tag == focusedTag } ?: tiles.firstOrNull() ?: all).requestFocus()
         if (tiles.isNotEmpty() && !prefs.getBoolean("tip_move", false)) {
             prefs.edit().putBoolean("tip_move", true).apply()
             Toast.makeText(this, getString(R.string.tip_move), Toast.LENGTH_LONG).show()
         }
     }
+
+    /** All apps in the dock: the grid symbol on the dock's tile colour, lifting on focus like the banners beside it. */
+    private fun allAppsTile(radius: Float): FrameLayout = FrameLayout(this).apply {
+        background = GradientDrawable().apply {
+            cornerRadius = radius
+            setColor(if (dark) 0xFF1B2027.toInt() else 0xFFE4E7EB.toInt())
+        }
+        addView(ImageView(this@MainActivity).apply {
+            setImageResource(R.drawable.ic_apps)
+            setColorFilter(kit.text)
+            scaleType = ImageView.ScaleType.FIT_CENTER
+        }, FrameLayout.LayoutParams(dp(22), dp(22), Gravity.CENTER))
+        tag = ALL_APPS
+        contentDescription = getString(R.string.all_apps)
+        focusArt(this, kit, radius / resources.displayMetrics.density, 1.14f)
+        setOnClickListener { openAllApps(this) }
+        setOnLongClickListener { true } // nothing to change about it
+    }
+
+    /** The dock's app tiles, without its All apps tile. */
+    private fun dockApps(): List<View> = (0 until appRow.childCount).map { appRow.getChildAt(it) }.filter { it.tag != ALL_APPS }
+
+    /** The first favourite, where Home and returning to the dock land; All apps is one press Left of it. */
+    private fun firstDockApp(): View? = dockApps().firstOrNull() ?: appRow.getChildAt(0)
+
+    /** Where the favourites start in the dock: after All apps. */
+    private fun firstAppIndex() = if (appRow.getChildAt(0)?.tag == ALL_APPS) 1 else 0
 
     /** An app's tile edge to edge in a rounded 16:9 frame; focus lights a rim and lifts it. Used by the dock and All apps. */
     private fun bannerTile(a: App, radius: Float): FrameLayout {
@@ -2106,6 +2182,7 @@ class MainActivity : Activity() {
      * listeners on tiles and cards are a fallback for remotes that send no repeats. [holdFired] stops both firing.
      */
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
+        if (allMoving != null && allApps.visibility == View.VISIBLE && allAppsMoveKey(e)) return true
         val confirm = e.keyCode == KeyEvent.KEYCODE_DPAD_CENTER || e.keyCode == KeyEvent.KEYCODE_ENTER ||
             e.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER
         if (confirm) {
@@ -2163,7 +2240,8 @@ class MainActivity : Activity() {
                     if (views.isNotEmpty()) {
                         // Straight back the way you came lands where you came from; otherwise the nearest across.
                         val back = trail?.takeIf { it.first === v && it.second in views && it.second.isAttachedToWindow }?.second
-                        val target = back ?: nearest(views, v)
+                        val toConsole = row == "dock" && HOME_ROWS[at] == "tiles" && (v === firstDockApp() || v.tag == ALL_APPS)
+                        val target = back ?: if (toConsole) views.first() else nearest(views, v)
                         trail = target to v
                         return target
                     }
@@ -2181,6 +2259,7 @@ class MainActivity : Activity() {
         } else {
             listOfNotNull(findViewById<View>(R.id.watchEmpty).takeIf { it.visibility == View.VISIBLE })
         }
+        "top" -> listOf<View>(wifi).filter { it.isShown }
         "dock" -> (0 until appRow.childCount).map { appRow.getChildAt(it) }
         else -> personalDashboard.rowViews(row)
     }
@@ -2215,6 +2294,7 @@ class MainActivity : Activity() {
         val tag = v.tag as? String
         when {
             allApps.visibility == View.VISIBLE && tag != null -> allAppsMenu(v)
+            v.tag == ALL_APPS -> Unit // nothing to change about All apps
             v.parent === appRow -> appMenu(v)
             v.getTag(R.id.watchRow) is Prog -> watchMenu(v, v.getTag(R.id.watchRow) as Prog)
             else -> personalDashboard.hold(v)
@@ -2229,11 +2309,11 @@ class MainActivity : Activity() {
         edit.apply()
         saveOrder(listOf(tag) + sortedApps().map { it.pkg }.filter { it != tag })
         closeAllApps()
-        appRow.getChildAt(0)?.requestFocus() // show the app just pinned
+        firstDockApp()?.requestFocus() // show the app just pinned
     }
 
     /**
-     * Hold OK in All apps: add the app to favourites (or remove it), move it to the other group, use its plain icon as
+     * Hold OK in All apps: move it within its group, add the app to favourites (or remove it), move it to the other group, use its plain icon as
      * its tile (or the standard one again), App info. Locked: Open only.
      */
     private fun allAppsMenu(v: View) {
@@ -2246,6 +2326,7 @@ class MainActivity : Activity() {
         val streaming = groupOf(app)
         val plainIcon = pkg in plainIcons()
         holdMenu(v, listOfNotNull(
+            getString(R.string.move) to { startAllAppsMove(pkg) },
             if (pkg in rowHiddenSet()) getString(R.string.add_to_row) to { pinToRow(pkg) }
             else getString(R.string.remove_from_row) to {
                 prefs.edit().putStringSet("row_hidden", rowHiddenSet() + pkg).putStringSet("row_added", rowAddedSet() - pkg)
@@ -2364,7 +2445,7 @@ class MainActivity : Activity() {
         moveOnce = once
         appsTitle.text = if (once) getString(R.string.moving_hint) else getString(R.string.editing_hint)
         appsTitle.visibility = View.VISIBLE
-        (grab ?: appRow.getChildAt(0)).requestFocus()
+        (grab ?: firstDockApp())?.requestFocus()
         setGrabbed(grab)
     }
 
@@ -2379,7 +2460,7 @@ class MainActivity : Activity() {
         editing = false
         moveOnce = false
         appsTitle.visibility = View.GONE
-        val row = (0 until appTileCount()).map { appRow.getChildAt(it).tag as String }
+        val row = dockApps().map { it.tag as String }
         saveOrder(row + sortedApps().map { it.pkg }.filter { it !in row })
     }
 
@@ -2392,7 +2473,7 @@ class MainActivity : Activity() {
         val v = currentFocus ?: return false
         val i = appRow.indexOfChild(v)
         if (confirm) {
-            if (e.action == KeyEvent.ACTION_UP && i in 0 until appTileCount()) {
+            if (e.action == KeyEvent.ACTION_UP && i in firstAppIndex() until appTileCount()) {
                 if (moveOnce) endEdit() else setGrabbed(if (grabbed === v) null else v)
             }
             return true
@@ -2402,7 +2483,7 @@ class MainActivity : Activity() {
             KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> return true
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
                 val j = if (e.keyCode == KeyEvent.KEYCODE_DPAD_LEFT) i - 1 else i + 1
-                if (j !in 0 until appTileCount()) return true
+                if (j !in firstAppIndex() until appTileCount()) return true
                 if (grabbed === v) {
                     // Swap layout params too, so the first tile keeps no leading margin.
                     val other = appRow.getChildAt(j)
@@ -2472,13 +2553,15 @@ class MainActivity : Activity() {
      * while open (apps installed, moved or retiled), that app keeps the focus and the list keeps its place.
      */
     private fun openAllApps(from: View? = null, focus: String? = null) {
+        allAppsFocus?.let { allApps.removeCallbacks(it) }
+        allAppsFocus = null
         allAppsFrom = from ?: currentFocus
         val keepY = allApps.scrollY
         allAppsSections.removeAllViews()
-        val cols = 6
+        val cols = ALL_APPS_COLUMNS
         val gap = dp(18)
         val width = (resources.displayMetrics.widthPixels - dp(80) - gap * (cols - 1)) / cols
-        val (streaming, other) = sortedApps().partition { groupOf(it) }
+        val (streaming, other) = allAppsSorted().partition { groupOf(it) }
         var first: View? = null
         var target: View? = null
         for ((heading, group) in listOf(R.string.apps_streaming to streaming, R.string.apps_utilities to other)) {
@@ -2495,6 +2578,7 @@ class MainActivity : Activity() {
             }
             group.forEachIndexed { i, a ->
                 val tile = bannerTile(a, kit.px(10f)) // holding OK here opens allAppsMenu (see onHold)
+                if (a.pkg == allMoving) tile.alpha = 0.6f
                 if (first == null) first = tile
                 if (a.pkg == focus) target = tile
                 val name = label(a.label, 12f).apply {
@@ -2526,9 +2610,16 @@ class MainActivity : Activity() {
         if (focus == null) {
             allApps.scrollTo(0, 0)
             first?.requestFocus()
-        } else allApps.post { // after layout, so the list can go back to where it was before the app is revealed
-            allApps.scrollTo(0, keepY)
-            (target ?: first)?.requestFocus()
+        } else {
+            // After layout, so the list can go back to where it was before the app is revealed. A rebuild before then
+            // (a held arrow while moving an app) replaces this one: its tiles are gone by then.
+            val land = Runnable {
+                allAppsFocus = null
+                allApps.scrollTo(0, keepY)
+                (target ?: first)?.takeIf { it.isAttachedToWindow }?.requestFocus()
+            }
+            allAppsFocus = land
+            allApps.post(land)
         }
     }
 
@@ -2539,10 +2630,77 @@ class MainActivity : Activity() {
     }
 
     /**
+     * All apps' order: as you arranged it with Move (or as it's being arranged), else the dock's. Apps you haven't
+     * placed (new installs) go to the end of their group.
+     */
+    private fun allAppsSorted(): List<App> {
+        val defaults = sortedApps()
+        val saved = allMovingOrder ?: prefs.getString("all_order", "")!!.split(',').filter { it.isNotEmpty() }
+        val byPkg = defaults.associateBy { it.pkg }
+        return orderAllApps(defaults.map { it.pkg }, saved).mapNotNull { byPkg[it] }
+    }
+
+    /** Hold OK > Move in All apps: the arrows move [pkg] within its group, OK or Back places it. */
+    private fun startAllAppsMove(pkg: String) {
+        allMovingOrder = allAppsSorted().map { it.pkg }
+        allMoving = pkg
+        findViewById<TextView>(R.id.allAppsHint).text = getString(R.string.moving_hint_grid)
+        openAllApps(allAppsFrom, focus = pkg)
+    }
+
+    /** Moves the app being moved [step] places in its group: ±1 along a row, ±a row's length up or down. */
+    private fun moveInAllApps(step: Int) {
+        val pkg = allMoving ?: return
+        val order = allMovingOrder ?: return
+        val byPkg = apps.associateBy { it.pkg }
+        val streaming = byPkg[pkg]?.let { groupOf(it) } ?: return endAllAppsMove()
+        val (mine, others) = order.partition { p -> byPkg[p]?.let { groupOf(it) } == streaming }
+        val moved = moveInGroup(mine, pkg, step)
+        if (moved == mine) return
+        allMovingOrder = if (streaming) moved + others else others + moved
+        openAllApps(allAppsFrom, focus = pkg)
+    }
+
+    /** Places the app being moved: All apps keeps this order from now on. [refresh]: show it in place (All apps is open). */
+    private fun endAllAppsMove(refresh: Boolean = true) {
+        val order = allMovingOrder
+        val moved = allMoving
+        allMoving = null
+        allMovingOrder = null
+        moved?.let { allAppsSections.findViewWithTag<View>(it)?.alpha = 1f }
+        if (order != null) prefs.edit().putString("all_order", order.joinToString(",")).apply()
+        findViewById<TextView>(R.id.allAppsHint).text = getString(R.string.all_apps_hint)
+        if (refresh) refreshAllApps()
+    }
+
+    /** While moving an app in All apps the arrows move it, and OK or Back places it; Home works as usual. */
+    private fun allAppsMoveKey(e: KeyEvent): Boolean {
+        val step = when (e.keyCode) {
+            KeyEvent.KEYCODE_DPAD_LEFT -> -1
+            KeyEvent.KEYCODE_DPAD_RIGHT -> 1
+            KeyEvent.KEYCODE_DPAD_UP -> -ALL_APPS_COLUMNS
+            KeyEvent.KEYCODE_DPAD_DOWN -> ALL_APPS_COLUMNS
+            else -> 0
+        }
+        if (step != 0) {
+            if (e.action == KeyEvent.ACTION_DOWN && (e.repeatCount == 0 || allAppsFocus == null)) moveInAllApps(step)
+            return true
+        }
+        if (e.keyCode == KeyEvent.KEYCODE_DPAD_CENTER || e.keyCode == KeyEvent.KEYCODE_ENTER ||
+            e.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER || e.keyCode == KeyEvent.KEYCODE_BACK
+        ) {
+            if (e.action == KeyEvent.ACTION_UP) endAllAppsMove()
+            return true
+        }
+        return false
+    }
+
+    /**
      * All apps scrolls so the focused app's whole cell shows, name included, with room above for a section heading:
      * left alone, the list only made the tile itself visible, leaving the name below the screen's edge.
      */
     private fun revealInAllApps(cell: View) {
+        if (!cell.isAttachedToWindow) return
         val scroller = allApps as ScrollView
         val r = Rect(0, 0, cell.width, cell.height)
         scroller.offsetDescendantRectToMyCoords(cell, r)
@@ -2557,12 +2715,18 @@ class MainActivity : Activity() {
     }
 
     private fun closeAllApps() {
+        if (allMoving != null) endAllAppsMove(refresh = false)
+        allAppsFocus?.let { allApps.removeCallbacks(it) }
+        allAppsFocus = null
+        val fromDockTile = allAppsFrom?.tag == ALL_APPS
         allApps.visibility = View.GONE
         homeScroll.visibility = View.VISIBLE
         findViewById<View>(R.id.wallpaperFrost).alpha = if (homeScroll.page > 0) 1f else 0f
         homeFocusable(true)
         renderApps()
-        (allAppsFrom?.takeIf { it.isAttachedToWindow } ?: appRow.getChildAt(0))?.requestFocus() // back where it was opened from
+        // Back where it was opened from; the dock's All apps tile was made again, so find the new one.
+        val back = if (fromDockTile) appRow.getChildAt(0) else allAppsFrom?.takeIf { it.isAttachedToWindow }
+        (back ?: firstDockApp())?.requestFocus()
         allAppsFrom = null
     }
 
@@ -3183,7 +3347,7 @@ class MainActivity : Activity() {
         ui.post { if (watchKey == key) addCardsTo(CARDS_AHEAD - 1) } // unless a newer list replaced this one
         if (focusedAt >= 0) {
             ((watchRow.getChildAt(focusedAt.coerceAtMost(watchRow.childCount - 1)) as? LinearLayout)?.getChildAt(0)
-                ?: appRow.getChildAt(0))?.requestFocus()
+                ?: firstDockApp())?.requestFocus()
         }
     }
 
@@ -3456,12 +3620,14 @@ class MainActivity : Activity() {
         const val NETFLIX = "com.netflix.ninja"
         const val AMBIENT_MODE = "com.google.android.apps.tv.dreamx" // Google TV's screensaver
         const val HDMI = "hdmi:" // App.pkg prefix for HDMI device tiles; the rest is the TV input id
+        const val ALL_APPS = "telepath:all_apps" // the dock's All apps tile; never an app's package
         const val ROW_TILES = 8
+        const val ALL_APPS_COLUMNS = 6
         const val GRID_GAP = 16 // dp; shared by the apps row and the cards so their columns line up
         const val CW_CARDS = 5 // Continue Watching cards across the screen
         const val CW_GAP = 16 // dp between Continue Watching cards: the scroller's 16 dp overhang, so the next card stays hidden
         /** Home rows top to bottom, as tagged with R.id.homeRow; Up/Down step through them in this order. */
-        val HOME_ROWS = listOf("cw", "dock", "tiles", "cards")
+        val HOME_ROWS = listOf("top", "cw", "dock", "tiles", "cards")
         const val SLIDESHOW = "slideshow" // wallpaper choice: the slideshow folder's photos, one per visit
         /** Shown names for the wallpaper keys saved in prefs (the keys stay English). */
         val WALLPAPER_NAMES = mapOf(

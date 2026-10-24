@@ -13,6 +13,15 @@ Put changes that are not released under `## Unreleased`. Rename that heading to 
 
 ## Unreleased
 
+## 1.1
+
+- All apps sits at the start of the favourites dock. Press Left from your first favourite.
+- Each console shows in its own colours: Xbox green, PlayStation blue and Nintendo red.
+- telepath remembers the console on each HDMI port. Its tile keeps the console's name and icon while it's off.
+- Move apps in All apps: hold OK on an app, choose Move, then use the arrows.
+- The Wi-Fi icon opens the network settings. Press Up from Continue Watching to reach it.
+- A PlayStation that calls itself "PS5" or "PS4" gets the PlayStation icon. Hold OK on a remembered console to forget it.
+
 ## 1.0
 
 - Your photos fill the top of the screen. A different one shows each time you return Home.

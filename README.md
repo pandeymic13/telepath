@@ -35,6 +35,10 @@ can fork, tweak and install on your own TV.
   tile and a group (Streaming, or Apps & utilities) automatically.
 - **Widgets one press down:** your inputs with your console first, shortcuts (Home settings, TV settings, the
   Google TV home screen, All apps), the weather and a stock watchlist.
+- **Consoles in their own colours:** Xbox green, PlayStation blue, Nintendo red. telepath remembers which console is
+  on each HDMI port, so its tile keeps the console's name and icon while it's switched off.
+- **All apps beside your favourites:** one press Left from the first favourite. Arrange All apps as you like, and
+  reach the network settings from the Wi-Fi icon at the top.
 - **Up next:** the next match or race you follow, beside the clock: football and cricket teams, the Champions League
   and World Cup knockouts, and Formula 1.
 - **Light:** about 0.5 MB, no third-party libraries, no background services. The Home button works even where Google
@@ -148,11 +152,14 @@ in the theme section of `telepath.properties`. See [Theme colours](docs/CUSTOMIZ
 | Home settings | Down, then **Shortcuts → Home settings** |
 | TV settings | Down, then **Shortcuts → TV settings** |
 | Google TV's own home screen | Down, then **Shortcuts → Google TV** (Home brings you back) |
-| All apps | Down, then **Shortcuts → All apps** |
+| All apps | Press **Left** from the first favourite (or Down, then **Shortcuts → All apps**) |
+| Network settings | Press **Up** from Continue Watching to the Wi-Fi icon, then **OK** |
 | Switch to your console | Down, then **Inputs** |
 | Google TV dashboard | Hold **Home** |
 | Move, remove or add a favourite | Hold **OK** on the app (in the dock or in All apps) |
+| Rearrange All apps | Hold **OK** on an app in All apps, choose **Move**, then use the arrows |
 | Move an app to the other group, or use its plain icon | Hold **OK** on it in All apps |
+| Forget the console remembered on a port | Hold **OK** on its input tile while the console is off |
 | Hide a Continue Watching card | Hold **OK** on it |
 | Change the weather location or watchlist | Hold **OK** on that card |
 

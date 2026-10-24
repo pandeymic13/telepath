@@ -41,11 +41,17 @@ Some common ones: Netflix `com.netflix.ninja`, YouTube `com.google.android.youtu
 The widgets page (press Down from the dock) lists the TV's HDMI inputs. One of them can be the **primary input**:
 shown first, as a lit tile, even when nothing on it is switched on.
 
+A device that names itself over HDMI-CEC (most consoles and streaming boxes do) gives its port its name and icon:
+Xbox, PlayStation (including one that calls itself "PS5"), Nintendo Switch, Apple TV, set-top boxes and other
+players. telepath remembers the device on each port, so the tile keeps its name and icon while the device is off; a
+device seen on another port moves there. Consoles get their own colours: Xbox green, PlayStation blue, Nintendo red.
+To forget a remembered device, hold OK on its tile while the device is off.
+
 | Setting | What it does |
 |---|---|
 | `inputs.primary.port` | Its HDMI port number. `0`: no primary input; all ports in number order. |
-| `inputs.primary.name` | The name on its tile, such as `Xbox`. Empty: the name the device gives over HDMI-CEC, else the port's name. |
-| `inputs.primary.icon` | `xbox`, `playstation`, `nintendoswitch`, `appletv`, `settop`, `playback`, `hdmi`, or `auto` to pick one from the name. |
+| `inputs.primary.name` | The name on its tile, such as `Xbox`. Empty: the name the device gives over HDMI-CEC (or the one remembered), else the port's name. |
+| `inputs.primary.icon` | `xbox`, `playstation`, `nintendoswitch`, `appletv`, `settop`, `playback`, `hdmi`, or `auto` to pick one from the name. The icon also sets the tile's colours. |
 
 ## Weather
 

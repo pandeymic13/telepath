@@ -42,6 +42,8 @@ internal interface DashboardHost {
     /** New weather arrived (or the place changed): the mood tint may follow it. */
     fun weatherUpdated()
     fun showInfo(title: String, rows: List<Pair<String, String>>, note: String?, actionLabel: String?, action: (() -> Unit)?)
+    /** A small menu above [anchor], as for holding OK on an app. */
+    fun menu(anchor: View, items: List<Pair<String, () -> Unit>>)
 }
 
 private val QUOTE_ALIASES = mapOf(
@@ -130,6 +132,7 @@ internal class PersonalDashboard(
     private val inputTiles = row()
     private val shortcutTiles = row()
     private val tiles = ArrayList<View>()
+    private val tilePorts = HashMap<View, Port>()
     private var portsShown = "" // the inputs as last drawn, so unchanged state reports don't rebuild them
     private val weatherCard: LinearLayout
     private val watchCard: LinearLayout
@@ -196,11 +199,24 @@ internal class PersonalDashboard(
         else -> emptyList()
     }
 
-    /** Holding OK on a card opens its settings. */
+    /** Holding OK on a card opens its settings; on an input showing a remembered device, it offers to forget it. */
     fun hold(v: View): Boolean = when (v) {
         weatherCard -> { host.configureWeather(); true }
         watchCard -> { host.configureWatchlist(); true }
-        else -> false
+        else -> forgetMenu(v)
+    }
+
+    private fun forgetMenu(v: View): Boolean {
+        val port = tilePorts[v] ?: return false
+        val seen = port.remembered ?: return false
+        host.menu(v, listOf(activity.getString(R.string.forget_device, seen.name) to {
+            home.forgetDevice(port.info.id)
+            val at = tiles.indexOf(v)
+            buildTiles()
+            tiles.getOrNull(at)?.requestFocus()
+            Toast.makeText(activity, activity.getString(R.string.device_forgotten, seen.name), Toast.LENGTH_LONG).show()
+        }))
+        return true
     }
 
     // ---------- layout pieces ----------
@@ -233,7 +249,12 @@ internal class PersonalDashboard(
         })
     }
 
-    private class Port(val info: TvInputInfo, val label: String, val icon: Int, val primary: Boolean, val active: Boolean)
+    /**
+     * One HDMI port as its tile shows it. [accent]: its console's colour, if any. [remembered]: the device named on
+     * this tile isn't on now; telepath remembers it from an earlier visit (hold OK on the tile to forget it).
+     */
+    private class Port(val info: TvInputInfo, val label: String, val icon: Int, val primary: Boolean, val active: Boolean,
+                       val accent: Int?, val remembered: SeenDevice?)
 
     private fun ports(): List<Port> {
         val manager = activity.getSystemService(TvInputManager::class.java) ?: return emptyList()
@@ -247,9 +268,13 @@ internal class PersonalDashboard(
         return roots.sortedWith(compareBy({ inputRank(it.loadLabel(activity).toString()) }, { it.loadLabel(activity).toString() })).map { port ->
             val name = port.loadLabel(activity).toString()
             val primary = isPrimaryInput(name)
-            val device = all.firstOrNull {
+            val live = all.firstOrNull {
                 it.parentId == port.id && !isAudioDevice(it.loadLabel(activity).toString())
-            }?.loadLabel(activity)?.toString()
+            }?.loadLabel(activity)?.toString()?.takeIf { it.isNotBlank() }
+            // A device that named itself on this port once keeps its name, icon and colours here while it's off.
+            if (live != null) home.rememberDevice(port.id, live)
+            val remembered = if (live == null) home.seenDevice(port.id) else null
+            val device = live ?: remembered?.name
             val portName = (port.loadCustomLabel(activity)?.toString() ?: name).substringBefore(" (")
             val look = if (primary) primaryInputLook(BuildConfig.PRIMARY_INPUT_NAME, BuildConfig.PRIMARY_INPUT_ICON, device, portName) else null
             val shown = when {
@@ -257,25 +282,28 @@ internal class PersonalDashboard(
                 device != null -> device
                 else -> portName
             }
-            val icon = when {
-                look != null -> INPUT_ICONS[look.second] ?: R.drawable.ic_hdmi
-                device != null -> INPUT_ICONS[hdmiIcon(device, true)] ?: R.drawable.ic_hdmi
-                port.type == TvInputInfo.TYPE_HDMI -> R.drawable.ic_hdmi
-                else -> R.drawable.ic_playback
+            val kind = when {
+                look != null -> look.second
+                device != null -> hdmiIcon(device, true)
+                port.type == TvInputInfo.TYPE_HDMI -> "hdmi"
+                else -> "playback"
             }
             val active = try {
                 manager.getInputState(port.id) == TvInputManager.INPUT_STATE_CONNECTED
             } catch (e: IllegalArgumentException) {
                 false
             }
-            Port(port, shown, icon, primary, active)
+            Port(port, shown, INPUT_ICONS[kind] ?: R.drawable.ic_hdmi, primary, active, consoleAccent(kind), remembered)
         }
     }
+
+    /** What each input tile shows, to rebuild them only when that changes. */
+    private fun shownPorts(ports: List<Port>) = ports.joinToString("|") { "${it.info.id}/${it.label}/${it.active}/${it.accent}/${it.remembered != null}" }
 
     /** Inputs then shortcuts, all one size, filling the content width with a wider gap between the groups. */
     private fun buildTiles() {
         val ports = ports()
-        portsShown = ports.joinToString("|") { "${it.info.id}/${it.label}/${it.active}" }
+        portsShown = shownPorts(ports)
         val gap = ui.px(10)
         val count = ports.size + SHORTCUTS
         val content = activity.resources.displayMetrics.widthPixels - ui.px(80)
@@ -283,13 +311,15 @@ internal class PersonalDashboard(
         inputTiles.removeAllViews()
         shortcutTiles.removeAllViews()
         tiles.clear()
+        tilePorts.clear()
         ports.forEachIndexed { i, p ->
-            val tile = tile(p.icon, p.label, dim = !p.primary && !p.active) {
+            val tile = tile(p.icon, p.label, dim = !p.primary && !p.active, accent = p.accent) {
                 open(Intent(Intent.ACTION_VIEW, TvContract.buildChannelUriForPassthroughInput(p.info.id)))
             }
             tile.contentDescription = if (p.primary) "${p.label}, ${p.info.loadLabel(activity)}" else p.label
             inputTiles.addView(tile, LinearLayout.LayoutParams(width, ui.px(66)).apply { if (i > 0) marginStart = gap })
             tiles += tile
+            tilePorts[tile] = p
         }
         if (ports.isEmpty()) {
             inputTiles.addView(text(13f, ui.text2).apply {
@@ -315,7 +345,7 @@ internal class PersonalDashboard(
     fun inputsChanged() {
         if (closed) return
         // Input services report state often; rebuild (and risk moving focus) only when what's shown changes.
-        val shown = ports().joinToString("|") { "${it.info.id}/${it.label}/${it.active}" }
+        val shown = shownPorts(ports())
         if (shown == portsShown) return
         val focused = activity.currentFocus
         val at = tiles.indexOf(focused)
@@ -323,7 +353,7 @@ internal class PersonalDashboard(
         if (at >= 0) tiles.getOrNull(minOf(at, tiles.size - 1))?.requestFocus()
     }
 
-    private fun tile(icon: Int, label: String, dim: Boolean, action: () -> Unit): View {
+    private fun tile(icon: Int, label: String, dim: Boolean, accent: Int? = null, action: () -> Unit): View {
         val image = ImageView(activity).apply {
             setImageResource(icon)
             scaleType = ImageView.ScaleType.FIT_CENTER
@@ -341,7 +371,7 @@ internal class PersonalDashboard(
             setOnClickListener { action() }
             setTag(R.id.homeRow, "tiles")
         }
-        focusTile(tile, ui, 14f, image, listOf(name), if (dim) ui.text3 else ui.text)
+        focusTile(tile, ui, 14f, image, listOf(name), if (dim) ui.text3 else ui.text, accent = accent)
         return tile
     }
 

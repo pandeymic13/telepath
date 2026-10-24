@@ -155,14 +155,17 @@
                         android:layout_height="1dp"
                         android:layout_weight="1" />
 
-                    <!-- Network status only; settings live in the Shortcuts row. -->
+                    <!-- Network status. Up from Continue Watching focuses it; OK opens the network settings. The padding
+                         is the focus disc's room; the negative margins keep the icon where it always sat. -->
                     <ImageView
                         android:id="@+id/wifi"
-                        android:layout_width="22dp"
-                        android:layout_height="22dp"
-                        android:layout_marginTop="8dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="-1dp"
+                        android:layout_marginEnd="-9dp"
+                        android:padding="9dp"
                         android:contentDescription="@string/network_settings"
-                        android:focusable="false"
+                        android:focusable="true"
                         android:src="@drawable/ic_wifi" />
                 </LinearLayout>
 

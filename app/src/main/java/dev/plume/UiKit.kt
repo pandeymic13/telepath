@@ -4,6 +4,7 @@ import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
@@ -83,15 +84,25 @@ internal fun View.lift(focused: Boolean, scale: Float, raise: Float) {
 /**
  * Focus for a glass tile: a solid white layer fades in over the glass while its icon and labels glide
  * to ink, then everything reverses on blur. One animator drives it all, so nothing flickers mid-way.
+ * [accent]: a console's own colour. The resting glass takes a tint of it, and focus fills the tile with it,
+ * with a white icon and labels, instead of white with ink.
  */
 internal fun focusTile(tile: View, ui: UiKit, radiusDp: Float, icon: ImageView?, labels: List<TextView>, restText: Int,
-                       restIcon: Int = restText, scale: Float = 1.07f, onFocus: ((Boolean) -> Unit)? = null) {
+                       restIcon: Int = restText, scale: Float = 1.07f, accent: Int? = null,
+                       onFocus: ((Boolean) -> Unit)? = null) {
     val white = GradientDrawable().apply {
         cornerRadius = ui.px(radiusDp)
-        setColor(ui.focusFill)
+        setColor(accent ?: ui.focusFill)
         alpha = 0
     }
-    tile.background = LayerDrawable(arrayOf(ui.glass(radiusDp), white))
+    val tint = accent?.let {
+        GradientDrawable().apply {
+            cornerRadius = ui.px(radiusDp)
+            setColor(Color.argb(if (ui.dark) 0x66 else 0x40, Color.red(it), Color.green(it), Color.blue(it)))
+        }
+    }
+    tile.background = LayerDrawable(listOfNotNull(ui.glass(radiusDp), tint, white).toTypedArray())
+    val focusInk = if (accent != null) Color.WHITE else ui.ink
     tile.isFocusable = true
     tile.isClickable = true
     tile.clipToOutline = true
@@ -108,8 +119,8 @@ internal fun focusTile(tile: View, ui: UiKit, radiusDp: Float, icon: ImageView?,
             addUpdateListener {
                 val f = it.animatedValue as Float
                 white.alpha = (f * 255).toInt()
-                icon?.setColorFilter(colours.evaluate(f, restIcon, ui.ink) as Int)
-                val ink = colours.evaluate(f, restText, ui.ink) as Int
+                icon?.setColorFilter(colours.evaluate(f, restIcon, focusInk) as Int)
+                val ink = colours.evaluate(f, restText, focusInk) as Int
                 labels.forEach { l -> l.setTextColor(ink) }
             }
             start()
