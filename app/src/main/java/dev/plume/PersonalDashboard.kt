@@ -33,7 +33,6 @@ import kotlin.math.abs
 
 /** What the widgets ask of the home screen: navigation, and settings pages in its side panel. */
 internal interface DashboardHost {
-    fun openAllApps(from: View)
     fun openHomeSettings(from: View)
     fun openGoogleTv()
     fun openTvSettings()
@@ -180,8 +179,10 @@ internal class PersonalDashboard(
             id = R.id.widgetCards
             orientation = LinearLayout.HORIZONTAL
             clipChildren = false
-            addView(weatherCard, LinearLayout.LayoutParams(0, ui.px(152), 59f))
-            addView(watchCard, LinearLayout.LayoutParams(0, ui.px(152), 41f).apply { marginStart = ui.px(16) })
+            addView(weatherCard, LinearLayout.LayoutParams(0, ui.px(152), WEATHER_SHARE.toFloat()))
+            addView(watchCard, LinearLayout.LayoutParams(0, ui.px(152), (100 - WEATHER_SHARE).toFloat()).apply {
+                marginStart = ui.px(CARDS_GAP)
+            })
         }
         section.addView(cards, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply {
             topMargin = ui.px(22)
@@ -300,14 +301,26 @@ internal class PersonalDashboard(
     /** What each input tile shows, to rebuild them only when that changes. */
     private fun shownPorts(ports: List<Port>) = ports.joinToString("|") { "${it.info.id}/${it.label}/${it.active}/${it.accent}/${it.remembered != null}" }
 
-    /** Inputs then shortcuts, all one size, filling the content width with a wider gap between the groups. */
+    /**
+     * Inputs then shortcuts, all one size. The shortcuts span the Watchlist card below them; when the inputs need more
+     * room than that leaves, all the tiles share the content width, with a wider gap between the groups.
+     */
     private fun buildTiles() {
         val ports = ports()
         portsShown = shownPorts(ports)
+        val shortcuts = listOf<Triple<Int, Int, (View) -> Unit>>(
+            Triple(R.drawable.ic_tv, R.string.google_tv) { _ -> host.openGoogleTv() },
+            Triple(R.drawable.ic_tune, R.string.home_settings) { v -> host.openHomeSettings(v) },
+            Triple(R.drawable.ic_settings, R.string.tv_settings) { _ -> host.openTvSettings() },
+        )
         val gap = ui.px(10)
-        val count = ports.size + SHORTCUTS
+        val count = ports.size + shortcuts.size
         val content = activity.resources.displayMetrics.widthPixels - ui.px(80)
-        val width = minOf(ui.px(106), (content - (count - 2) * gap - ui.px(28)) / count)
+        val cards = content - ui.px(CARDS_GAP)
+        val watchlist = cards - cards * WEATHER_SHARE / 100 // the Watchlist card's width, rounded as its row rounds it
+        val spanWatchlist = (watchlist - (shortcuts.size - 1) * gap) / shortcuts.size
+        val shareRow = (content - (count - 2) * gap - ui.px(28)) / count
+        val width = minOf(spanWatchlist, shareRow)
         inputTiles.removeAllViews()
         shortcutTiles.removeAllViews()
         tiles.clear()
@@ -327,12 +340,7 @@ internal class PersonalDashboard(
                 gravity = Gravity.CENTER_VERTICAL
             }, LinearLayout.LayoutParams(width * 2, ui.px(66)))
         }
-        listOf<Triple<Int, Int, (View) -> Unit>>(
-            Triple(R.drawable.ic_apps, R.string.all_apps) { v -> host.openAllApps(v) },
-            Triple(R.drawable.ic_tv, R.string.google_tv) { _ -> host.openGoogleTv() },
-            Triple(R.drawable.ic_tune, R.string.home_settings) { v -> host.openHomeSettings(v) },
-            Triple(R.drawable.ic_settings, R.string.tv_settings) { _ -> host.openTvSettings() },
-        ).forEachIndexed { i, (icon, label, action) ->
+        shortcuts.forEachIndexed { i, (icon, label, action) ->
             val made = arrayOfNulls<View>(1)
             val view = tile(icon, tr(label), dim = false) { made[0]?.let(action) }
             made[0] = view
@@ -872,7 +880,9 @@ internal class PersonalDashboard(
     }
 
     private companion object {
-        const val SHORTCUTS = 4
+        /** The Weather card's share of the cards' row, in percent (the Watchlist has the rest), and the gap between them in dp. */
+        const val WEATHER_SHARE = 59
+        const val CARDS_GAP = 16
         val INPUT_ICONS = mapOf(
             "playstation" to R.drawable.logo_playstation,
             "xbox" to R.drawable.logo_xbox,

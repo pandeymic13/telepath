@@ -1491,7 +1491,6 @@ class MainActivity : Activity() {
     private var cityExit: (() -> Unit)? = null
 
     private val dashboardHost = object : DashboardHost {
-        override fun openAllApps(from: View) = this@MainActivity.openAllApps(from)
         override fun menu(anchor: View, items: List<Pair<String, () -> Unit>>) = holdMenu(anchor, items)
         override fun openHomeSettings(from: View) = unlock { openLauncherSettings(0) }
         override fun openGoogleTv() = this@MainActivity.openGoogleTv()

@@ -15,7 +15,7 @@ Put changes that are not released under `## Unreleased`. Rename that heading to 
 
 ## 1.1
 
-- All apps sits at the start of the favourites dock. Press Left from your first favourite.
+- All apps moves from the widgets page to the start of the favourites dock. Press Left from your first favourite.
 - Each console shows in its own colours: Xbox green, PlayStation blue and Nintendo red.
 - telepath remembers the console on each HDMI port. Its tile keeps the console's name and icon while it's off.
 - Move apps in All apps: hold OK on an app, choose Move, then use the arrows.

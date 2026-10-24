@@ -33,8 +33,8 @@ can fork, tweak and install on your own TV.
   landscape pictures with titles. No suggestions.
 - **App tiles in the Apple TV style,** with day and night versions made from each app's own logo. New apps get a
   tile and a group (Streaming, or Apps & utilities) automatically.
-- **Widgets one press down:** your inputs with your console first, shortcuts (Home settings, TV settings, the
-  Google TV home screen, All apps), the weather and a stock watchlist.
+- **Widgets one press down:** your inputs with your console first, shortcuts (Home settings, TV settings and the
+  Google TV home screen), the weather and a stock watchlist.
 - **Consoles in their own colours:** Xbox green, PlayStation blue, Nintendo red. telepath remembers which console is
   on each HDMI port, so its tile keeps the console's name and icon while it's switched off.
 - **All apps beside your favourites:** one press Left from the first favourite. Arrange All apps as you like, and
@@ -152,7 +152,7 @@ in the theme section of `telepath.properties`. See [Theme colours](docs/CUSTOMIZ
 | Home settings | Down, then **Shortcuts → Home settings** |
 | TV settings | Down, then **Shortcuts → TV settings** |
 | Google TV's own home screen | Down, then **Shortcuts → Google TV** (Home brings you back) |
-| All apps | Press **Left** from the first favourite (or Down, then **Shortcuts → All apps**) |
+| All apps | Press **Left** from the first favourite |
 | Network settings | Press **Up** from Continue Watching to the Wi-Fi icon, then **OK** |
 | Switch to your console | Down, then **Inputs** |
 | Google TV dashboard | Hold **Home** |
