@@ -107,6 +107,22 @@ internal fun panZoom(t: Float, slide: Int, bw: Int, bh: Int, w: Int, h: Int): Fl
 /** Where the clock sits, in 1080p units in from the bottom-right corner: it moves with every picture, against burn-in. */
 private val CLOCK_NUDGE = arrayOf(intArrayOf(0, 0), intArrayOf(26, 12), intArrayOf(12, 28), intArrayOf(34, 4))
 
+/** How far the clock's shade reaches from the bottom-right corner, as a share of the screen's width. */
+internal const val CLOCK_SHADE_REACH = 0.42f
+
+/** The shade's darkness (alpha) out from the corner: it eases off and reaches nothing at [CLOCK_SHADE_REACH]. */
+internal val CLOCK_SHADE_ALPHAS = intArrayOf(0x73, 0x5A, 0x33, 0x17, 0x07, 0)
+internal val CLOCK_SHADE_STOPS = floatArrayOf(0f, 0.3f, 0.55f, 0.74f, 0.88f, 1f)
+
+/**
+ * Where to paint the clock's shade on a [w]×[h] screen (left, top, right, bottom): the square around all of it, so
+ * it fades out by itself everywhere. A smaller rectangle cut it off in a line across the photo.
+ */
+internal fun clockShadeBounds(w: Float, h: Float): FloatArray {
+    val reach = w * CLOCK_SHADE_REACH
+    return floatArrayOf(maxOf(0f, w - reach), maxOf(0f, h - reach), w, h)
+}
+
 /**
  * telepath's screensaver: the Wallpapers slideshow (default), the paintings or a photo folder, as chosen in
  * Home settings > Screensaver, with the time and weather in a corner. Left/Right step through the pictures; any
@@ -395,10 +411,12 @@ internal class GalleryShow(private val context: Context) : SurfaceHolder.Callbac
             weather = currentWeather()
         }
         if (shade.shader == null) {
-            shade.shader = RadialGradient(c.width.toFloat(), c.height.toFloat(), c.width * 0.42f,
-                intArrayOf(0x73000000, 0x33000000, 0), floatArrayOf(0f, 0.55f, 1f), Shader.TileMode.CLAMP)
+            shade.shader = RadialGradient(c.width.toFloat(), c.height.toFloat(), c.width * CLOCK_SHADE_REACH,
+                CLOCK_SHADE_ALPHAS.map { it shl 24 }.toIntArray(), CLOCK_SHADE_STOPS, Shader.TileMode.CLAMP)
+            shade.isDither = true // no banding in the dark, smooth fade
         }
-        c.drawRect(c.width * 0.5f, c.height * 0.4f, c.width.toFloat(), c.height.toFloat(), shade)
+        val (shadeLeft, shadeTop, shadeRight, shadeBottom) = clockShadeBounds(c.width.toFloat(), c.height.toFloat())
+        c.drawRect(shadeLeft, shadeTop, shadeRight, shadeBottom, shade)
         val nudge = CLOCK_NUDGE[slide % CLOCK_NUDGE.size]
         val right = c.width - (88 + nudge[0]) * u
         val base = c.height - (80 + nudge[1]) * u

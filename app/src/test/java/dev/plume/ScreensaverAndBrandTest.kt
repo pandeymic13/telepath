@@ -36,6 +36,28 @@ class ScreensaverAndBrandTest {
         assertEquals(1f, panZoom(-1f, 0, 1920, 1080, 1920, 1080)[0], 0.0001f)
     }
 
+    /** The clock's shade used to be cut off by its rectangle 40% down the screen, a line across the photo. */
+    @Test fun theClocksShadeIsPaintedAllTheWayToWhereItFadesOut() {
+        for ((w, h) in listOf(1920f to 1080f, 3840f to 2160f, 1280f to 720f)) {
+            val (left, top, right, bottom) = clockShadeBounds(w, h)
+            val reach = w * CLOCK_SHADE_REACH
+            // Everything the shade darkens (within its reach of the bottom-right corner) is inside what's painted.
+            assertTrue(left <= w - reach + 0.01f && top <= h - reach + 0.01f)
+            assertEquals(w, right, 0f)
+            assertEquals(h, bottom, 0f)
+        }
+        // It eases off and ends at nothing, so no edge shows where it stops.
+        assertEquals(CLOCK_SHADE_ALPHAS.size, CLOCK_SHADE_STOPS.size)
+        assertEquals(0, CLOCK_SHADE_ALPHAS.last())
+        assertEquals(1f, CLOCK_SHADE_STOPS.last(), 0f)
+        for (i in 1 until CLOCK_SHADE_ALPHAS.size) {
+            assertTrue(CLOCK_SHADE_ALPHAS[i] < CLOCK_SHADE_ALPHAS[i - 1])
+            assertTrue(CLOCK_SHADE_STOPS[i] > CLOCK_SHADE_STOPS[i - 1])
+        }
+        // The last stretch is faint: under 3% dark before it reaches nothing.
+        assertTrue(CLOCK_SHADE_ALPHAS[CLOCK_SHADE_ALPHAS.size - 2] < 0x08)
+    }
+
     @Test fun screensaverSourceKeepsEarlierChoices() {
         assertEquals("slideshow", screensaverSource("slideshow", null))
         assertEquals("folder", screensaverSource(null, "bucket:123:Camera")) // chosen before there was a slideshow

@@ -21,6 +21,7 @@ Put changes that are not released under `## Unreleased`. Rename that heading to 
 - Move apps in All apps: hold OK on an app, choose Move, then use the arrows.
 - The Wi-Fi icon opens the network settings. Press Up from Continue Watching to reach it.
 - A PlayStation that calls itself "PS5" or "PS4" gets the PlayStation icon. Hold OK on a remembered console to forget it.
+- The screensaver's shade under the clock fades out smoothly. No line shows across the photo.
 
 ## 1.0
 
